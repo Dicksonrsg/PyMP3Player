@@ -1,3 +1,4 @@
+from cgitb import handler
 import os
 from tkinter.ttk import Style
 import wx
@@ -82,4 +83,43 @@ class MediaPanel(wx.Panel):
         
         return audioBarSizer
     
+    def buildBtn(self, btnDict, sizer):
+        """"""
+        bmp = btnDict['bitmap']
+        handler = btnDict['handler']
+        
+        img = wx.Bitmap(os.path.join(bitmapDir, bmp))
+        btn = buttons.GenBitmapButton(self, bitmap = img, name = btnDict['name'])
+        btn.SetInitialSize()
+        btn.Bind(wx.EVT_BUTTON, handler)
+        sizer.Add(btn, 0, wx.LEFT, 3)
     
+    def createMenu(self):
+        """
+        Creates a menu
+        """
+        menubar = wx.MenuBar()
+        
+        fileMenu = wx.Menu()
+        open_file_menu_item = fileMenu.Append(wx.NewId(), "&Open", "Open a File")
+        menubar.Append(fileMenu, '&File')
+        self.frame.SetMenuBar(menubar)
+        self.frame.Bind(wx.EVT_MENU, self.onBrowse, open_file_menu_item)
+        
+    def loadMusic(self, musicFile):
+        """
+        Load the music into the mediaCtrl or display an error dialog if the user tries to load an unsupported file type
+        """
+        if not self.mediaPlayer.Load(musicFile):
+            wx.MessageBox("Unable to load %s: UNsupported format?" % musicFile, "ERROR", wx.ICON_ERROR | wx.OK)
+        else:
+            self.mediaPlayer.SetInitialSize()
+            self.GetSizer().Layout()
+            self.playbackSlider.SetRange(0, self.mediaPlayer.Length())
+            self.playPauseBtn.Enable(True)
+    
+    def onBrowse(self, event):
+        """
+        Opens file dialog to browse for music
+        """
+        wildcard = "MP3 (*.mp3|*.mp3|"
