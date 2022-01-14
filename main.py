@@ -55,3 +55,31 @@ class MediaPanel(wx.Panel):
         
         self.SetSizer(mainSizer)
         self.Layout()
+    
+    def buildAudioBar(self):
+        """
+        Builds Audio Bar controls
+        """
+        audioBarSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.buildBtn({'bitmap':'player_prev.png', 'handler': self.onPrev, 'name':'prev'}, audioBarSizer)
+        
+        #Create play/pause toggle button
+        img = wx.Bitmap(os.path.join(bitmapDir, "player_play.png"))
+        self.playPauseBtn = buttons.GenBitmapToggleButton(self, bitmap = img, name = "play")
+        self.playPauseBtn.Enable(False)
+        
+        img = wx.Bitmap(os.path.join(bitmapDir, "player_pause.png"))
+        self.playPauseBtn.SetBitmapSelected(img)
+        self.playPauseBtn.SetInitialSize()
+        
+        self.playPauseBtn.Bind(wx.EVT_BUTTON, self.onPlay)
+        audioBarSizer.Add(self.playPauseBtn, 0, wx.LEFT, 3)
+        
+        btnData = [{'bitmap':'player_stop.png', 'handler':self.onStop, 'name':'stop'}, {'bitmap':'player_next.png', 'handler':self.onNext, 'name':'next'}]
+        for btn in btnData:
+            self.buildBtn(btn, audioBarSizer)
+        
+        return audioBarSizer
+    
+    
