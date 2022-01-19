@@ -1,4 +1,5 @@
 from cgitb import handler
+from importlib.resources import path
 import os
 from tkinter.ttk import Style
 import wx
@@ -122,4 +123,78 @@ class MediaPanel(wx.Panel):
         """
         Opens file dialog to browse for music
         """
-        wildcard = "MP3 (*.mp3|*.mp3|"
+        wildcard = "MP3 (*.mp3)|*.mp3|"     \
+                   "WAV (*.wav)|*.wav"
+        dlg = wx.FileDialog( self, message="Choose a file", defaultDir=self.currentFolder, defaultFile="", wildcard=wildcard, style= wx.OPEN | wx.CHANGE_DIR)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            self.currentFolder = os.path.dirname(path)
+            self.loadMusic(path)
+        dlg.Destroy()
+    
+    def onNext(self, event):
+        """
+        Not implemented
+        """ 
+        pass
+    
+    def onPause(self):
+        self.mediaPlayer.Pause()
+    
+    def onPlay(self, event):
+        if not event.GetIsDown():
+            self.onPause()
+            return
+        
+        if not self.mediaPlayer.Play():
+            wx.MessageBox("Unable to Play media: Unsupported format?", "ERROR", wx.ICON_ERROR | wx.OK)
+        else:
+            self.mediaPlayer.SetInitialSize()
+            self.GetSizer().Layout()
+            self.playbackSlider.SetRange(0, self.mediaPlayer.Length())
+        
+        event.Skip()
+    
+    def onPrev(self, event):
+        """ Not implmented"""
+        pass
+    
+    def onSeek(self, event):
+        """
+        Seeks the media file according to the amount the slider has been adjusted.
+        """
+        offset = self.playbackSlider.GetValue()
+        self.mediaPlayer.Seek(offset)
+    
+    def onSetVolume(self, event):
+        self.currentVolume = self.volumeCTRL.GetValue()
+        print("setting volume to: %s" % int(self.currentVolume))
+        self.mediaPlayer.SetVolume(self.currentVolume)
+    
+    def onStop(self, event):
+        """
+        Stops the music and resets play button
+        """
+        self.mediaPlayer.Stop()
+        self.playPauseBtn.SetToggle(False)
+    
+    def onTimer(self, event):
+        """
+        Keeps the player slider updated
+        """
+        offset = self.mediaPlayer.Tell()
+        self.playbackSlider.SetValue(offset)
+    
+class MediaFrame(wx.Frame):
+    
+    def __init__(self):
+        wx.Frame.__init__(self, None, wx.ID_ANY, "Python music Player v1")
+        panel = MediaPanel(self)
+
+#Run the program
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MediaFrame()
+    frame.Show()
+    app.MainLoop()
